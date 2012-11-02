@@ -1,10 +1,19 @@
+Jellyfish is a Scala library for dependency injection via delimited continuations.
+
 # Example usage
 
-```scala
-import scala.util.continuations.reset
-import com.versal.jellyfish._
+Import jellyfish:
 
+```scala
+import com.versal.jellyfish._
+```
+
+Write a program which pulls dependencies in via the `read` function:
+
+```scala
 object SimpleProgram {
+
+  import scala.util.continuations.reset
 
   case class Foo(x: Int)
   case class Bar(x: String)
@@ -16,7 +25,11 @@ object SimpleProgram {
   }
 
 }
+```
 
+Write an interpreter which knows how to provide the dependencies to the program:
+
+```scala
 object SimpleInterpreter {
 
   import SimpleProgram.{Foo, Bar}
@@ -31,7 +44,11 @@ object SimpleInterpreter {
   }
 
 }
+```
 
+Run the interpreter:
+
+```scala
 object SimpleExample extends App {
 
   val result = SimpleInterpreter.run(SimpleProgram.simpleProgram)
