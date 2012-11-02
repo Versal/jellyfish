@@ -37,5 +37,7 @@ object SimpleExample extends App {
   val result = SimpleInterpreter.run(SimpleProgram.simpleProgram)
 
   println(result) // prints "foo is 42, bar is baz"
+
 }
 ```
+
