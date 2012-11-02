@@ -4,8 +4,11 @@ object `package` {
 
   import scala.util.continuations.cpsParam
   import scala.util.continuations.shift
+  import scala.util.continuations.reset
 
   type program = cpsParam[Program, Program]
+
+  def program(ctx: => Program @program): Program = reset[Program, Program](ctx)
 
   trait Program
   case class Return(a: Any) extends Program

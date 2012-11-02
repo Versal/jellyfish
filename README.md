@@ -13,12 +13,10 @@ Write a program which pulls dependencies in via the `read` function:
 ```scala
 object SimpleProgram {
 
-  import scala.util.continuations.reset
-
   case class Foo(x: Int)
   case class Bar(x: String)
 
-  def simpleProgram = reset {
+  def simpleProgram = program {
     val bar: Bar = read[Bar]
     val foo: Foo = read[Foo]
     Return("foo is " + foo.x + ", bar is " + bar.x)
