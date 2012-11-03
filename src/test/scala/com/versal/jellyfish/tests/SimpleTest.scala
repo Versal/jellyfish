@@ -9,7 +9,7 @@ object SimpleProgram {
   case class Foo(x: Int)
   case class Bar(x: String)
 
-  def simpleProgram = reset {
+  def simpleProgram = program {
     val bar: Bar = read[Bar]
     val foo: Foo = read[Foo]
     Return("foo is " + foo.x + ", bar is " + bar.x)
