@@ -58,7 +58,7 @@ case class Return(a: Any) extends Program
 case class With[A](c: Class[A], f: A => Program) extends Program
 ```
 
-The `read` function, which wraps Scala's `shift` function, takes a generic function of type `X => Program` and wraps it in a `With` which tracks the type of `X`.  This can happen an arbitrary number of times, resulting in a data structure analogous to a curried function.
+The `read` function, which wraps Scala's `shift` function, takes a generic function of type `A => Program` and wraps it in a `With` which tracks the type of `A`.  This can happen an arbitrary number of times, resulting in a data structure analogous to a curried function.
 
 Ignoring some of the wrappers, this:
 
@@ -89,4 +89,4 @@ bar: Bar => {
 
 which is a curried function with two dependencies.
 
-An interpreter is then built to unwrap each nested `With`, extract the function of type `X => Program`, provide the appropriate instance of `X`, and continue until the program completes with a `Return`. 
+An interpreter is then built to unwrap each nested `With`, extract the function of type `A => Program`, provide the appropriate instance of `A`, and continue until the program completes with a `Return`. 

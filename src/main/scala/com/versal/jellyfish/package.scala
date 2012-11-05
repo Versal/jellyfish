@@ -14,9 +14,9 @@ object `package` {
   case class Return(a: Any) extends Program
   case class With[A](c: Class[A], f: A => Program) extends Program
 
-  def read[X](implicit mx: Manifest[X]): X @program = shift { k: (X => Program) =>
-    val f = { x: X => k(x) }
-    With(mx.erasure.asInstanceOf[Class[X]], k)
+  def read[A](implicit mx: Manifest[A]): A @program = shift { k: (A => Program) =>
+    val f = { x: A => k(x) }
+    With(mx.erasure.asInstanceOf[Class[A]], k)
   }
 
   implicit def classy(x: Class[_]): Classy = new Classy(x)
