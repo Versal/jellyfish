@@ -34,9 +34,9 @@ object SimpleInterpreter {
 
   // run a program, injecting dependencies as needed
   def run(p: Program): Any = p match {
-    case Return(a) => a
     case With(c, f) if c.isA[Foo] => run(f(foo)) // inject the `Foo` dependency
     case With(c, f) if c.isA[Bar] => run(f(bar)) // inject the `Bar` dependency
+    case Return(a)                => a           // all done - return the result
   }
 
 }
@@ -48,3 +48,9 @@ Third, run the interpreter:
 val result = SimpleInterpreter.run(SimpleProgram.simpleProgram)
 println(result) // prints "foo is 42, bar is baz"
 ```
+
+# How it works
+
+The `read` function, which wraps Scala's `shift` function, takes a generic function of type `X => Program` and wraps it in a `With` which tracks the type of `X`.  This can happen an arbitrary number of times, resulting in a data structure analogous to a curried function.
+
+An interpreter is then built to unwrap each nested `With`, provide the appropriate instance of `X`, and continue until the program completes with a `Return`. 
