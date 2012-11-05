@@ -60,7 +60,7 @@ case class With[A](c: Class[A], f: A => Program) extends Program
 
 The `read` function, which wraps Scala's `shift` function, takes a generic function of type `X => Program` and wraps it in a `With` which tracks the type of `X`.  This can happen an arbitrary number of times, resulting in a data structure analogous to a curried function.
 
-This:
+Ignoring some of the wrappers, this:
 
 ```scala
 val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
