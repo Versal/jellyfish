@@ -51,6 +51,42 @@ println(result) // prints "foo is 42, bar is baz"
 
 # How it works
 
+A Jellyfish program is represented as an instance of the `Program` trait, which has two implementations:
+
+```scala
+case class Return(a: Any) extends Program
+case class With[A](c: Class[A], f: A => Program) extends Program
+```
+
 The `read` function, which wraps Scala's `shift` function, takes a generic function of type `X => Program` and wraps it in a `With` which tracks the type of `X`.  This can happen an arbitrary number of times, resulting in a data structure analogous to a curried function.
 
-An interpreter is then built to unwrap each nested `With`, provide the appropriate instance of `X`, and continue until the program completes with a `Return`. 
+This:
+
+```scala
+val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
+val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
+Return("foo is " + foo.x + ", bar is " + bar.x)
+```
+
+becomes:
+
+```scala
+bar: Bar => {
+  val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
+  Return("foo is " + foo.x + ", bar is " + bar.x)
+}
+```
+
+which becomes:
+
+```scala
+bar: Bar => {
+  foo: Foo => {
+    Return("foo is " + foo.x + ", bar is " + bar.x)
+  }
+}
+```
+
+which is a curried function with two dependencies.
+
+An interpreter is then built to unwrap each nested `With`, extract the function of type `X => Program`, provide the appropriate instance of `X`, and continue until the program completes with a `Return`. 
