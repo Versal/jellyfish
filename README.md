@@ -34,8 +34,8 @@ object SimpleInterpreter {
 
   // run a program, injecting dependencies as needed
   def run(p: Program): Any = p match {
-    case With(c, f) if c.isA[Foo] => run(f(foo)) // inject the `Foo` dependency
-    case With(c, f) if c.isA[Bar] => run(f(bar)) // inject the `Bar` dependency
+    case With(c, f) if c.isA[Foo] => run(f(foo)) // inject the `Foo` dependency and continue
+    case With(c, f) if c.isA[Bar] => run(f(bar)) // inject the `Bar` dependency and continue
     case Return(a)                => a           // all done - return the result
   }
 
