@@ -10,7 +10,7 @@ object `package` {
 
   def program(ctx: => Program @program): Program = reset[Program, Program](ctx)
 
-  trait Program
+  sealed trait Program
   case class Return(a: Any) extends Program
   case class With[A](c: Class[A], f: A => Program) extends Program
 
