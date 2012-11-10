@@ -2,7 +2,7 @@ organization := "com.versal"
 
 name := "jellyfish"
 
-version := "0.1-SNAPSHOT"
+version := "0.1-RC1"
 
 scalaVersion := "2.9.2"
 
@@ -13,3 +13,4 @@ addCompilerPlugin("org.scala-lang.plugins" % "continuations" % "2.9.2")
 scalacOptions += "-P:continuations:enable"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.0.M4" % "test"
+
