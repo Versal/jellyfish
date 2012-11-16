@@ -16,14 +16,15 @@ case class Bar(x: String)
 
 object SimpleProgram {
 
-  import com.versal.jellyfish.{program, read, Return}
+  import com.versal.jellyfish.{program, Program, read, Return}
 
   // create a program with some dependencies
-  val simpleProgram = program {
-    val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
-    val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
-    Return("foo is " + foo.x + ", bar is " + bar.x)
-  }
+  val simpleProgram: Program =
+    program {
+      val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
+      val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
+      Return("foo is " + foo.x + ", bar is " + bar.x)
+    }
 
 }
 ```
@@ -39,11 +40,12 @@ object SimpleInterpreter {
   val bar = Bar("baz")
 
   // run a program, injecting dependencies as needed
-  def run(p: Program): Any = p match {
-    case With(c, f) if c.isA[Foo] => run(f(foo)) // inject the `Foo` dependency and continue
-    case With(c, f) if c.isA[Bar] => run(f(bar)) // inject the `Bar` dependency and continue
-    case Return(a)                => a           // all done - return the result
-  }
+  def run(p: Program): Any =
+    p match {
+      case With(c, f) if c.isA[Foo] => run(f(foo)) // inject the `Foo` dependency and continue
+      case With(c, f) if c.isA[Bar] => run(f(bar)) // inject the `Bar` dependency and continue
+      case Return(a)                => a           // all done - return the result
+    }
 
 }
 ```
