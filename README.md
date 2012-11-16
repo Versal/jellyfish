@@ -1,6 +1,6 @@
 Jellyfish is a Scala library for dependency injection via delimited continuations.
 
-To use Jellyfish, add the following to `build.sbt`:
+To use Jellyfish, add the following to _build.sbt_:
 
 ```
 libraryDependencies += "com.versal" %% "jellyfish" % "0.1-RC1"
