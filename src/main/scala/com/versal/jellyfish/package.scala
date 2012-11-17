@@ -15,7 +15,6 @@ object `package` {
   case class With[A](c: Class[A], f: A => Program) extends Program
 
   def read[A](implicit mx: Manifest[A]): A @program = shift { k: (A => Program) =>
-    val f = { x: A => k(x) }
     With(mx.erasure.asInstanceOf[Class[A]], k)
   }
 
