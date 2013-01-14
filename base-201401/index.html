@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0041)http://www.w3.org/Talks/Tools/Slidy2/#(3) -->
+<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Dependency Injection with Jellyfish</title>
+<link rel="stylesheet" href="slidy.css" type="text/css">
+<script src="slidy.js" charset="utf-8" type="text/javascript"></script>
+<style type="text/css"> 
+  div.toolbar { visibility: hidden; }
+  div.cover { text-align: center; margin-top: 10%; }
+  div.cover h1 { margin-right: 0px; }
+  p.location { margin-top: 100px; }
+  p.author { margin-top: 200px; }
+</style> 
+<script type="text/javascript">
+  w3c_slidy.want_toolbar = false;
+  w3c_slidy.add_initial_prompt = function () {};
+</script>
+</head>
+<body style="visibility: visible; font-size: 14pt;" class=" single_slide">
+
+<div class="cover slide">
+
+<h1>Dependency Injection with Jellyfish</h1>
+
+<p class="location">Bay Area Scala Enthusiasts, January 2013
+<p class="author">James Earl Douglas
+<p><a href="http://twitter.com/jearldouglas">@jearldouglas</a>
+
+</div>
+
+<div class="slide">
+
+<h1>Dependency injection</h1>
+
+<div class="incremental">
+
+<em>Specification of the execution context of a program by choosing its inputs when convenient (e.g. run-time).</em>
+
+<p>In other words, a program that, given a certain external dependency, is ready to execute.
+
+<pre>
+val program =
+  e: Employee =&gt; {
+    println("Employee printer v1.0")
+    println("Employee: " + e.name)
+  }
+</pre>
+
+<p>To execute, just provide the dependency.
+
+<pre>
+program(new Employee("Fred"))
+</pre>
+
+<p>This is otherwise known as <em>passing arguments</em>
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Passing arguments</h1>
+
+<div class="incremental">
+
+<p>When we write methods, we specify programs with dependencies in the form of arguments.
+
+<pre>
+def logTheRepo(r: Repository, l: Logger) {
+  l.log(r.getData())
+}
+
+trait Repository { def getData(): List[String] }
+trait Logger     { def log(data: List[String]): Unit }
+</pre>
+
+<p>The <tt>logTheRepo</tt> method can be modularized based on its inputs.
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Passing arguments</h1>
+
+<div class="incremental">
+
+<p>We can rewrite our program as a bunch of nested single-argument functions.
+
+<pre>
+def logTheRepo =
+  val r: Repository =&gt; {
+    val l: Logger =&gt; {
+      l.log(r.getData())
+    }
+  }
+</pre>
+
+<p><tt>logTheRepo</tt> is a function that, given a <tt>Repository</tt>, returns a function that takes a <tt>Logger</tt> and returns <tt>Unit</tt>.
+
+<pre>
+val iNeedARepository = logTheRepo
+val iNeedALogger     = iNeedARepository(someRepository)
+
+iNeedALogger(someLogger)
+</pre>
+
+<p>This nested/callback style is hard to read.
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Dependency lookup</h1>
+
+<div class="incremental">
+
+<p>It would be nice if we could do without all this explicit nesting, and write our code in a declarative style.
+
+<pre>
+def logTheRepo =
+  {
+    val r: Repository = read[Repository]
+    val l: Logger     = read[Logger]
+    l.log(r.getData())
+  }
+</pre>
+
+<p>How do we implement <tt>read</tt>?
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Delimited continuations</h1>
+
+<div class="incremental">
+
+<p>We want <tt>read</tt> to convert our program into something akin to nested single-argument functions, as before.
+
+<pre>
+def read[A](implicit m: Manifest[A]): A @cpsParam[Any, Program[A]] = 
+  shift {
+    k: (A =&gt; Any) =&gt; {
+      val f = { r: A =&gt; k(r) }
+      Program(m.erasure.asInstanceOf[Class[A]], f)
+    }
+  }
+
+case class Program[A](c: Class[A], f: A =&gt; Any)
+</pre>
+
+<pre>
+Program(
+  c = classOf[Repository],
+  f = Repository =&gt; Program(
+                         c = classOf[Logger],
+                         f = Logger =&gt; Unit
+                       )
+)
+</pre>
+
+<p>Now <tt>logTheRepo</tt> is a <tt>Program</tt>.  How can we execute it?
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Program interpreter</h1>
+
+<div class="incremental">
+
+<pre>
+def interpret(x: Any): Any =
+  x match {
+    case Program(c, f) if c.isAssignableFrom(classOf[Repository]) =&gt; interpreter(f(FooRepository))
+    case Program(c, f) if c.isAssignableFrom(classOf[Logger])     =&gt; interpreter(f(FooLogger))
+    case _                                                        =&gt; x
+  }
+
+object FooRepository extends Repository { def getData() = List("a", "b", "c") }
+object FooLogger     extends Logger     { def log(data: List[String]) = data.foreach(println(_)) }
+</pre>
+
+<p>How do we use this interpreter?
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Reify and execute</h1>
+
+<div class="incremental">
+
+<p>Use Scala's <tt>reset</tt> function to convert our <tt>@cpsParam</tt>-annotated function into something we can use directly.
+
+<pre>
+interpret(reset(logTheRepo)) // prints "a", "b", and "c" to new lines
+</pre>
+
+<pre>
+def logTheRepo =
+  {
+    val r: Repository = read[Repository]
+    val l: Logger     = read[Logger]
+    l.log(r.getData())
+  }
+
+def interpret(x: Any): Any =
+  x match {
+    case Program(c, f) if c.isAssignableFrom(classOf[Repository]) =&gt; interpreter(f(FooRepository))
+    case Program(c, f) if c.isAssignableFrom(classOf[Logger])     =&gt; interpreter(f(FooLogger))
+    case _                                                        =&gt; x
+  }
+</pre>
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Jellyfish</h1>
+
+<div class="incremental">
+
+<p>Expand <tt>Program</tt> to two possible types that represent "more stuff to do" and "all done".
+
+<pre>
+sealed trait Program
+case class Return(a: Any) extends Program
+case class With[A](c: Class[A], f: A =&gt; Program) extends Program
+</pre>
+
+<p>Clean up the pattern match.
+
+<pre>
+def logTheRepo =
+  program {
+    val r: Repository = read[Repository]
+    val l: Logger     = read[Logger]
+    l.log(r.getData())
+  }
+
+def run(p: Program): Any =
+  p match {
+    case With(c, f) if c.isA[Repository] =&gt; run(f(FooRepository))
+    case With(c, f) if c.isA[Logger]     =&gt; run(f(FooLogger))
+    case Return(a)                       =&gt; a
+  }
+</pre>
+
+<p>Java's type erasure == sadface.
+
+</div>
+
+</div>
+
+<div class="slide">
+
+<h1>Reference</h1>
+
+<p><a href="https://github.com/Versal/jellyfish">Jellyfish</a> <em>(github.com/Versal/jellyfish)</em>
+<p><a href="http://engineering.versal.com/frameworks/2012/11/16/jellyfish-introduction/">Beyond the Reader Monad</a> <em>(engineering.versal.com)</em>
+<p><a href="http://comonad.com/reader/2011/free-monads-for-less/">Free Monads for Less</a> <em>(comonad.com)</a>
+
+</div>
+
+</body>
+</html>
