@@ -178,13 +178,21 @@ Program(
 <pre>
 def interpret(x: Any): Any =
   x match {
-    case Program(c, f) if c.isAssignableFrom(classOf[Repository]) =&gt; interpreter(f(FooRepository))
-    case Program(c, f) if c.isAssignableFrom(classOf[Logger])     =&gt; interpreter(f(FooLogger))
-    case _                                                        =&gt; x
+    case Program(c, f) if c.isAssignableFrom(classOf[Repository])
+      =&gt; interpreter(f(FooRepository))
+    case Program(c, f) if c.isAssignableFrom(classOf[Logger])
+      =&gt; interpreter(f(FooLogger))
+    case _
+      =&gt; x
   }
 
-object FooRepository extends Repository { def getData() = List("a", "b", "c") }
-object FooLogger     extends Logger     { def log(data: List[String]) = data.foreach(println(_)) }
+object FooRepository extends Repository {
+  def getData() = List("a", "b", "c")
+}
+
+object FooLogger extends Logger {
+  def log(data: List[String]) = data.foreach(println(_))
+}
 </pre>
 
 <p>How do we use this interpreter?
