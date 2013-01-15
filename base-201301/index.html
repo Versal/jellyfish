@@ -147,10 +147,7 @@ def logTheRepo =
 <pre>
 def read[A](implicit m: Manifest[A]): A @cpsParam[Any, Program[A]] = 
   shift {
-    k: (A =&gt; Any) =&gt; {
-      val f = { r: A =&gt; k(r) }
-      Program(m.erasure.asInstanceOf[Class[A]], f)
-    }
+    k: (A =&gt; Any) =&gt; Program(m.erasure.asInstanceOf[Class[A]], k)
   }
 
 case class Program[A](c: Class[A], f: A =&gt; Any)
