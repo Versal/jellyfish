@@ -10,33 +10,51 @@ object SimpleProgram {
   case class Bar(x: String)
 
   def simpleProgram = program {
-    val bar: Bar = read[Bar]
-    val foo: Foo = read[Foo]
+    val bar: Bar = read[Bar, String]
+    val foo: Foo = read[Foo, String]
     Return("foo is " + foo.x + ", bar is " + bar.x)
   }
 
 }
 
-object SimpleInterpreter {
+object TypeCasingInterpreter {
 
   import SimpleProgram.{Foo, Bar}
 
   val foo = Foo(42)
   val bar = Bar("baz")
 
-  def run(p: Program): Any = p match {
+  def run[A](p: Program[A]): A = p match {
     case Return(a) => a
     case With(c, f) if c.isA[Foo] => run(f(foo))
     case With(c, f) if c.isA[Bar] => run(f(bar))
   }
+}
 
+object DependencyMapInterpreter {
+
+  import SimpleProgram.{Foo, Bar}
+
+  val foo = Foo(42)
+  val bar = Bar("baz")
+
+  val deps: Map[Class[_], Any] = Map(classOf[Foo] -> foo, classOf[Bar] -> bar)
+
+  def run[A](p: Program[A]): A = p match {
+    case Return(a) => a
+    case With(c, f) => run(f(deps(c)))
+  }
 }
 
 class SimpleTest extends FunSuite {
 
-  test("simpleProgram") {
-    val result = SimpleInterpreter.run(SimpleProgram.simpleProgram)
+  test("simpleProgram : TypeCasingInterpreter") {
+    val result = TypeCasingInterpreter.run(SimpleProgram.simpleProgram)
+    assert("foo is 42, bar is baz" === result)
+  }
+
+  test("simpleProgram : DependencyMapInterpreter") {
+    val result = DependencyMapInterpreter.run(SimpleProgram.simpleProgram)
     assert("foo is 42, bar is baz" === result)
   }
 }
-
