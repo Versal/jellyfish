@@ -10,8 +10,8 @@ object SimpleProgram {
   case class Bar(x: String)
 
   def simpleProgram = program {
-    val bar: Bar = read[Bar, String]
-    val foo: Foo = read[Foo, String]
+    val bar: Bar = read[Bar]
+    val foo: Foo = read[Foo]
     Return("foo is " + foo.x + ", bar is " + bar.x)
   }
 
@@ -49,12 +49,14 @@ object DependencyMapInterpreter {
 class SimpleTest extends FunSuite {
 
   test("simpleProgram : TypeCasingInterpreter") {
-    val result = TypeCasingInterpreter.run(SimpleProgram.simpleProgram)
+    val program: Program[String] = SimpleProgram.simpleProgram
+    val result: String = TypeCasingInterpreter.run(program)
     assert("foo is 42, bar is baz" === result)
   }
 
   test("simpleProgram : DependencyMapInterpreter") {
-    val result = DependencyMapInterpreter.run(SimpleProgram.simpleProgram)
+    val program: Program[String] = SimpleProgram.simpleProgram
+    val result: String = TypeCasingInterpreter.run(program)
     assert("foo is 42, bar is baz" === result)
   }
 }
