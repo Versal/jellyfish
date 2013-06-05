@@ -5,7 +5,7 @@ To use Jellyfish, add the following to _build.sbt_:
 ```
 resolvers += "sonatype-snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-libraryDependencies += "com.versal" %% "jellyfish" % "0.2.0-SNAPSHOT"
+libraryDependencies += "com.versal" %% "jellyfish" % "1.0.0-SNAPSHOT"
 ```
 
 # Example

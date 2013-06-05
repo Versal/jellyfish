@@ -2,7 +2,7 @@ organization := "com.versal"
 
 name := "jellyfish"
 
-version := "0.2.0-SNAPSHOT"
+version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.10.1"
 
