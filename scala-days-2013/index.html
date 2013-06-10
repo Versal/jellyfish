@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-US">
+<head>
+<title>Jellyfish</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="slidy.css" type="text/css" />
+<script src="slidy.js" charset="utf-8" type="text/javascript">
+</script>
+<style type-"text.css">
+table { margin-top: 25px; border-right: 1px solid #dddddd; border-bottom: 1px solid #dddddd; border-spacing: 0; border-collapse: collapse;}
+th,td { border-top: 1px solid #dddddd; border-left: 1px solid #dddddd; }
+td { background-color: #f6f6f6; color: #333333; padding: 6px 13px 6px 13px; }
+div.cover { text-align: center; margin-top: 10%; }
+div.cover h1 { margin: 0; padding: 0 }
+div.cover p { margin-left: 0; margin-right: 0; padding: 0 }
+p.link { margin-top: 25px; }
+p.location { margin-top: 25px; }
+p.author { margin-top: 25px; }
+</style>
+</head>
+<body>
+
+<div class="cover slide">
+<h1>Dependency injection with Jellyfish</h1>
+
+<p class="location">Scala Days 2013</p>
+
+<p class="author">
+  James Earl Douglas<br />
+  <a href="https://twitter.com/jearldouglas">@jearldouglas</a>
+</p>
+
+<p class="link"><a href="https://github.com/Versal/jellyfish">github.com/Versal/jellyfish</a></p>
+
+</div>
+
+<div class="slide">
+<h1>Dependency lookup</h1>
+
+<pre class="incremental">
+val deps: Map[Class[_], Any] = Map(classOf[Repository] -&gt; ... ,
+                                   classOf[Logger] -&gt; ... )
+</pre>
+
+<pre class="incremental">
+def getAllData: Data = {
+
+  val log: Logger = deps(classOf[Logger])
+  log.warn("this is going to take a while...")
+
+  val repo: Repository = deps(classOf[Repository])
+  repo.getData()
+
+}
+</pre>
+
+<p class="incremental">A good start, but where are the types?</p>
+
+</div>
+
+<div class="slide">
+<h1>Dependency lookup</h1>
+
+<p>Let's try embedding the dependencies in the function type</p>
+
+<pre>
+def getAllData: Logger =&gt; Repository =&gt; Data =
+  { log =&gt;
+
+    log.warn("this is going to take a while...") ;
+
+    { repo =&gt;
+
+      repo.getData()
+
+    }
+  }
+</pre>
+
+<p class="incremental">Ok, but this is getting kind of callbacky.</p>
+
+</div>
+
+<div class="slide">
+<h1>Dependency lookup</h1>
+
+<p>Let's use a lookup, but keep the type information.</p>
+
+<pre>
+trait Program[+A]
+
+def getAllData: Program[Data] = program {
+
+  val log: Logger = read[Logger]
+  log.warn("this is going to take a while...")
+
+  val repo: Repository = read[Repository]
+  repo.getData()
+
+}
+</pre>
+
+<p class="incremental">How do we run a <tt class="non-incremental">Program</tt>?</p>
+
+</div>
+
+<div class="slide">
+<h1>Program interpreter</h1>
+
+<p>First, define what a <tt>Program</tt> can be.</p>
+
+<pre>
+case class With[A,B](c: Class[A], f: A =&gt; Program[B]) extends Program[B]
+case class Return[A](a: A) extends Program[A]
+</pre>
+
+<span class="incremental">
+
+<p class="non-incremental">Given a <tt class="non-incremental">Program</tt>, inject any dependency needed to get a new <tt class="non-incremental">Program</tt>.  Repeat until done.</p>
+
+<pre class="non-incremental">
+val deps: Map[Class[_], Any] = Map(classOf[Repository] -&gt; ... ,
+                                   classOf[Logger] -&gt; ... )
+
+def run[A](p: Program[A]): A = p match {
+  case With(c, f) =&gt; run(f(deps(c)))
+  case Return(a)  =&gt; a
+}
+</pre>
+
+</span>
+
+<p class="incremental">How does the <tt class="non-incremental">read</tt> function give us a <tt class="non-incremental">Program</tt>?</p>
+
+</div>
+
+<div class="slide">
+<h1>Delimited continuations</h1>
+
+<p>Using Scala's <tt>shift</tt> and <tt>reset</tt> functions.<p>
+
+<pre>
+def getAllData: Program[Data] = program {
+  ...
+}
+</pre>
+
+<pre>
+def program[A](ctx: =&gt; Program[A] @program[Any]): Program[A] =
+  reset(ctx).asInstanceOf[Program[A]]
+
+def read[A](implicit mx: Manifest[A]) = shift { k: (A =&gt; Program[_]) =&gt;
+  With[A,Any](mx.erasure.asInstanceOf[Class[A]], k)
+}
+</pre>
+
+<p class="incremental">What does this buy us?</p>
+
+</div>
+
+<div class="slide">
+<h1>The good stuff</h1>
+
+<ul>
+  <li>Most of the complexity is hidden in the library</li>
+  <li>Curred/callback-like functionality</li>
+  <li>Declarative style</li>
+  <li>Each <tt>Program</tt> knows the type of its dependency</li>
+  <li>Interpreter implementation is up to us</li>
+  <li>No dependencies "just passing through"</li>
+  <li>All the goodies of <tt>Reader</tt></li>
+</ul>
+
+</div>
+
+<div class="slide">
+<h1>References</h1>
+
+<p><strong>Jellyfish</strong></p>
+
+<ul><li><a href="https://github.com/Versal/jellyfish">github.com/Versal/jellyfish</a></li></ul>
+
+<p><strong>Cannonball</strong></p>
+
+<p>An example Jellyfish-based J2EE Scala Web application</p>
+
+<ul><li><a href="https://github.com/Versal/cannonball">github.com/Versal/cannonball</a></li></ul>
+
+</div>
+
+</body>
+</html>
