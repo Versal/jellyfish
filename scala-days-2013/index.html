@@ -17,6 +17,7 @@ div.cover p { margin-left: 0; margin-right: 0; padding: 0 }
 p.link { margin-top: 25px; }
 p.location { margin-top: 25px; }
 p.author { margin-top: 25px; }
+p.company { margin-top: 25px; font-size: 1.2em; }
 </style>
 </head>
 <body>
@@ -31,7 +32,15 @@ p.author { margin-top: 25px; }
   <a href="https://twitter.com/jearldouglas">@jearldouglas</a>
 </p>
 
-<p class="link"><a href="https://github.com/Versal/jellyfish">github.com/Versal/jellyfish</a></p>
+<p class="author">
+  Alexy Khrabrov<br />
+  <a href="https://twitter.com/khrabrov">@khrabrov</a>
+</p>
+
+<p class="company">
+  Versal<br />
+  <a href="http://versal.com">versal.com</a>
+</p>
 
 </div>
 
@@ -101,7 +110,7 @@ def getAllData: Program[Data] = program {
 }
 </pre>
 
-<p class="incremental">How do we run a <tt class="non-incremental">Program</tt>?</p>
+<p class="incremental">How do we run a <tt class="non-incremental">Program</tt>, and where are the types?</p>
 
 </div>
 
@@ -131,7 +140,7 @@ def run[A](p: Program[A]): A = p match {
 
 </span>
 
-<p class="incremental">How does the <tt class="non-incremental">read</tt> function give us a <tt class="non-incremental">Program</tt>?</p>
+<p class="incremental">How did we get a <tt class="non-incremental">Program</tt>, anyway?</p>
 
 </div>
 
@@ -175,7 +184,7 @@ def read[A](implicit mx: Manifest[A]) = shift { k: (A =&gt; Program[_]) =&gt;
 </div>
 
 <div class="slide">
-<h1>References</h1>
+<h1>Source code</h1>
 
 <p><strong>Jellyfish</strong></p>
 
@@ -186,6 +195,32 @@ def read[A](implicit mx: Manifest[A]) = shift { k: (A =&gt; Program[_]) =&gt;
 <p>An example Jellyfish-based J2EE Scala Web application</p>
 
 <ul><li><a href="https://github.com/Versal/cannonball">github.com/Versal/cannonball</a></li></ul>
+
+</div>
+
+<div class="slide">
+<h1>Cannonball</h1>
+
+<pre>
+trait DbConnector { def connect[A](f: Connection => A): A }
+trait IdGenerator { def generate: String }
+</pre>
+
+<pre>
+def getEntries(offset: Int, limit: Int) = program {
+  val dbConnector: DbConnector = read[DbConnector]
+  val entries: Seq[Entry] = dbConnector.connect(Queries.getEntries(offset, limit))
+  Return(entries)
+}
+
+def addEntry(content: String) = program {
+  val dbConnector: DbConnector = read[DbConnector]
+  val idGenerator: IdGenerator = read[IdGenerator]
+  val id: String = idGenerator.generate
+  val entry: Entry = dbConnector.connect(Commands.addEntry(id, content))
+  Return(entry)
+}
+</pre>
 
 </div>
 
