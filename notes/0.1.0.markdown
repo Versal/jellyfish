@@ -1,0 +1,5 @@
+Initial release.
+
+### Features
+
+* Rudimentary declarative type-based dependency lookup
