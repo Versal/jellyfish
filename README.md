@@ -16,14 +16,14 @@ case class Bar(x: String)
 
 object SimpleProgram {
 
-  import com.versal.jellyfish.{program, Program, read, Return}
+  import com.versal.jellyfish.{program, read}
 
   // create a program with some dependencies
-  val simpleProgram: Program =
+  val simpleProgram =
     program {
       val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
       val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
-      Return("foo is " + foo.x + ", bar is " + bar.x)
+      "foo is " + foo.x + ", bar is " + bar.x
     }
 
 }
@@ -73,7 +73,7 @@ Ignoring some of the wrappers, this:
 ```scala
 val bar: Bar = read[Bar]  // retrieve the `Bar` dependency
 val foo: Foo = read[Foo]  // retrieve the `Foo` dependency
-Return("foo is " + foo.x + ", bar is " + bar.x)
+"foo is " + foo.x + ", bar is " + bar.x
 ```
 
 becomes:
@@ -97,4 +97,4 @@ bar: Bar => {
 
 which is a curried function with two dependencies.
 
-An interpreter is then built to unwrap each nested `With`, extract the function of type `A => Program`, provide the appropriate instance of `A`, and continue until the program completes with a `Return`. 
+An interpreter is then built to unwrap each nested `With`, extract the function of type `A => Program`, provide the appropriate instance of `A`, and continue until the program completes with a `Return`.
