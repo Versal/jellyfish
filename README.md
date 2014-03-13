@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Versal/jellyfish.png?branch=master)](https://travis-ci.org/Versal/jellyfish)
+
 Jellyfish is a Scala library for dependency injection via delimited continuations.
 
 To use Jellyfish, add the following to _build.sbt_:
