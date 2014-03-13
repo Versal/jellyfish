@@ -1,30 +1,33 @@
-package com.versal.jellyfish
+package com.versal
 
-object `package` {
+package object jellyfish {
 
-  import scala.util.continuations.cpsParam
+  import scala.util.continuations.cps
   import scala.util.continuations.shift
   import scala.util.continuations.reset
+  import scala.language.implicitConversions
 
-  type program = cpsParam[Program, Program]
+  type program = cps[Program]
 
-  def program(ctx: => Program @program): Program = reset[Program, Program](ctx)
+  def program[A](ctx: => A @program)(implicit ev: A => Program): Program =
+    reset(ev(ctx))
 
   sealed trait Program
+  object Program {
+    implicit def toReturn(a: Any): Program = Return(a)
+  }
   case class Return(a: Any) extends Program
   case class With[A](c: Class[A], f: A => Program) extends Program
 
   def read[A](implicit mx: Manifest[A]): A @program = shift { k: (A => Program) =>
-    With(mx.erasure.asInstanceOf[Class[A]], k)
+    With(mx.runtimeClass.asInstanceOf[Class[A]], k)
   }
 
   implicit def classy(x: Class[_]): Classy = new Classy(x)
-
 }
 
 class Classy(x: Class[_]) {
-  def isA[A](implicit m: Manifest[A]): Boolean = {
-    x.isAssignableFrom(m.erasure)
-  }
+  def isA[A](implicit m: Manifest[A]): Boolean =
+    x.isAssignableFrom(m.runtimeClass)
 }
 
