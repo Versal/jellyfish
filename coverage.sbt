@@ -1,0 +1,3 @@
+ScoverageSbtPlugin.instrumentSettings
+
+CoverallsPlugin.coverallsSettings

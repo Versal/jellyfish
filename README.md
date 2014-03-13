@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Versal/jellyfish.png?branch=master)](https://travis-ci.org/Versal/jellyfish)
+[![Coverage Status](https://coveralls.io/repos/Versal/jellyfish/badge.png)](https://coveralls.io/r/Versal/jellyfish)
 
 Jellyfish is a Scala library for dependency injection via delimited continuations.
 
